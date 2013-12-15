@@ -16,25 +16,26 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class NoPlayers extends JavaPlugin implements Listener {
-	
 	private HashMap<String, Boolean> alreadyHidden = new HashMap<String, Boolean>();
 	
+	/**
+	 * Register the EventHandler
+	 */
 	@Override
 	public void onEnable() {
 		getServer().getPluginManager().registerEvents(this, this);
 	}
 
-	@Override
-	public void onDisable() {
-	}
-
-	/* Method checks if players are already hidden or not
-	*  and if necessary, all players are hidden or made ​​visible again
-	*/ 
+	/**
+	 * Handles the use of items / blocks by the player
+	 * Checks if the player interacts with a paper and hides / shows the other players
+	 */
 	@EventHandler
 	public void onInteract(PlayerInteractEvent e) {
+		// Is the item a paper? Right-Click?
 		if (e.getPlayer().getItemInHand().getType() == Material.PAPER && (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK)) {
-			if(alreadyHidden.get(e.getPlayer().getName()) == false) {
+			// Players already hidden? Then make them visible again
+			if (alreadyHidden.get(e.getPlayer().getName()) == false) {
 				hidePlayer(e.getPlayer());
 				alreadyHidden.put(e.getPlayer().getName(), true);
 			} else {
@@ -44,39 +45,54 @@ public class NoPlayers extends JavaPlugin implements Listener {
 		}
 	}
 	
-	// Method sets the player an item to his Inventory
+	/**
+	 * Handles joining of players
+	 * Gives the player his paper
+	 */
 	@EventHandler 
 	public void onPlayerJoin(PlayerJoinEvent e) {
 		Player p = e.getPlayer();
+		
+		// Create the paper
 		ItemStack itemstack = new ItemStack(Material.PAPER, 1);
 		List<String> ls = new ArrayList<String>();
 		ls.add("§cHide all players.");
-		if(!p.getInventory().contains(setName(itemstack, "§6§l§oHide", ls))) 
-		{
+		
+		// Player already has this paper? Then don't add an other one
+		if (!p.getInventory().contains(setName(itemstack, "§6§l§oHide", ls))) {
 			p.getInventory().addItem(setName(itemstack, "§6§l§oHide", ls));
 		}
 		alreadyHidden.put(p.getName(), false);
 	}
 	
-	// Method hides all players
-	public void hidePlayer(Player s) {
-		Player[] target = s.getServer().getOnlinePlayers();
-		for (int i = 0; i < target.length; i++) {
-			s.hidePlayer(target[i]);
+	/**
+	 * Hides every player for the specified player
+	 * @param p Player which wants to hide the others
+	 */
+	public void hidePlayer(Player p) {
+		for (Player players : Bukkit.getOnlinePlayers()) {
+			p.hidePlayer(players);
 		}
-		s.sendMessage("§eWooosh! Hello? Hellooo?");
+		p.sendMessage("§eWooosh! Hello? Hellooo?");
 	}
 	
-	// Method shows all players
-	public void showPlayer(Player s) {
-		Player[] target = s.getServer().getOnlinePlayers();
-		for (int i = 0; i < target.length; i++) {
-			s.showPlayer(target[i]);
+	/**
+	 * Shows every player for the specified player
+	 * @param p Player which wants to see the others
+	 */
+	public void showPlayer(Player p) {
+		for (Player players : Bukkit.getOnlinePlayers()) {
+			p.showPlayer(players);
 		}
-		s.sendMessage("§eWooosh! You can see me!");
+		p.sendMessage("§eWooosh! You can see me!");
 	}
 	
-	// Sets the name of the Itemstack
+	/**
+	 * Helper, which gives an ItemStack a (coloured) name and additional text
+	 * @param is	ItemStack to modify
+	 * @param name	ItemStack's name
+	 * @param lore	ItemStack's info
+	 */
 	private ItemStack setName(ItemStack is, String name, List<String> lore) {
 		ItemMeta im = is.getItemMeta();
 		if (name != null) {
@@ -89,4 +105,3 @@ public class NoPlayers extends JavaPlugin implements Listener {
 		return is;
 	}
 }
-
